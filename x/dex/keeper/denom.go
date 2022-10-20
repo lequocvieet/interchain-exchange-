@@ -33,7 +33,7 @@ func VoucherDenom(port string, channel string, denom string) string {
 
 	// construct the denomination trace from the full raw denomination
 	denomTrace := ibctransfertypes.ParseDenomTrace(prefixedDenom)
-	voucher := .IBCDenom()
+	voucher := denomTrace.IBCDenom()
 	return voucher[:16]
 }
 

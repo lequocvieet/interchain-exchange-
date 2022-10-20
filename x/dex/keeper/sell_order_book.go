@@ -1,9 +1,10 @@
 package keeper
 
 import (
+	"interchange/x/dex/types"
+
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"interchange/x/dex/types"
 )
 
 // SetSellOrderBook set a specific sellOrderBook in the store from its index
@@ -60,4 +61,39 @@ func (k Keeper) GetAllSellOrderBook(ctx sdk.Context) (list []types.SellOrderBook
 	}
 
 	return
+}
+
+func (s *SellOrderBook) FillBuyOrder(order Order) (
+	remainingBuyOrder Order,
+	liquidated []Order,
+	purchase int32,
+	filled bool,
+) {
+	var liquidatedList []Order
+	totalPurchase := int32(0)
+	remainingBuyOrder = order
+
+	// Liquidate as long as there is match
+	for {
+		var match bool
+		var liquidation Order
+		remainingBuyOrder, liquidation, purchase, match, filled = s.LiquidateFromBuyOrder(
+			remainingBuyOrder,
+		)
+		if !match {
+			break
+		}
+
+		// Update gains
+		totalPurchase += purchase
+
+		// Update liquidated
+		liquidatedList = append(liquidatedList, liquidation)
+
+		if filled {
+			break
+		}
+	}
+
+	return remainingBuyOrder, liquidatedList, totalPurchase, filled
 }
