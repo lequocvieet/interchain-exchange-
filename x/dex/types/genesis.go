@@ -14,7 +14,8 @@ func DefaultGenesis() *GenesisState {
 		PortId:            PortID,
 		SellOrderBookList: []SellOrderBook{},
 		BuyOrderBookList:  []BuyOrderBook{},
-		// this line is used by starport scaffolding # genesis/types/default
+		DenomTraceList: []DenomTrace{},
+// this line is used by starport scaffolding # genesis/types/default
 		Params: DefaultParams(),
 	}
 }
@@ -45,7 +46,17 @@ func (gs GenesisState) Validate() error {
 		}
 		buyOrderBookIndexMap[index] = struct{}{}
 	}
-	// this line is used by starport scaffolding # genesis/types/validate
+	// Check for duplicated index in denomTrace
+denomTraceIndexMap := make(map[string]struct{})
+
+for _, elem := range gs.DenomTraceList {
+	index := string(DenomTraceKey(elem.Index))
+	if _, ok := denomTraceIndexMap[index]; ok {
+		return fmt.Errorf("duplicated index for denomTrace")
+	}
+	denomTraceIndexMap[index] = struct{}{}
+}
+// this line is used by starport scaffolding # genesis/types/validate
 
 	return gs.Params.Validate()
 }
